@@ -39,3 +39,6 @@ CSS from original branch */
 .model-header-container .validation-error-message {
     margin-left:3rem;
 }
+.btn-new-model-property:disabled {
+    color:#666666;
+}
