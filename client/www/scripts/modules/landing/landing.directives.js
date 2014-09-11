@@ -12,3 +12,21 @@ Landing.directive('slLandingApp', [
     };
   }
 ]);
+
+
+Landing.directive('slAppSelector', [
+  function(){
+    return {
+      restrict: "E",
+      replace: true,
+      templateUrl: './scripts/modules/landing/templates/_landing.app.selector.html',
+      scope: {},
+      controller: function($scope, $attrs, LandingService){
+        LandingService.getApps()
+          .then(function(data){
+            $scope.apps = data;
+          });
+      }
+    }
+  }
+]);
