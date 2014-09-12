@@ -1,8 +1,8 @@
-<div class="sl-ui-select" data-ui-type="select">
-  <span class="selected" data-id="foo">StrongStudio</span>
+<div class="sl-ui-select open" data-ui-type="select">
+  <span class="selected" data-id="{{selected.id}}">{{selected.name}}</span>
   <ul>
     <li ng-repeat="item in list">
-      <a href="/#{{item.id}}" data-id="{{item.id}}">{{item.name}}</a>
+      <a href data-id="{{item.id}}" ng-click="selectItem(item);" ng-class="{ selected: selected == item }">{{item.name}}</a>
     </li>
   </ul>
 </div>

@@ -11,6 +11,18 @@
     {
       "id": "inspector",
       "name": "Node Inspector"
+    },
+    {
+      "id": "studio2",
+      "name": "Strong Studio 2"
+    },
+    {
+      "id": "advisor2",
+      "name": "Node Advisor 2"
+    },
+    {
+      "id": "inspector2",
+      "name": "Node Inspector 2"
     }
   ]
 }

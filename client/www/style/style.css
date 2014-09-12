@@ -48,6 +48,9 @@
   width: 100%;
   padding: 1.25rem;
 }
+.sl-app-selector {
+  display: inline-block;
+}
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
   .sl-landing-page .sl-app {
@@ -56,4 +59,54 @@
     margin-right: 2.5rem;
     margin-top: 0;
   }
+}
+.sl-ui-select {
+  display: inline-block;
+  border-radius: 0.4rem;
+  background-color: #65a718;
+  position: relative;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  height: 4.3rem;
+  font-size: 14px;
+}
+.sl-ui-select.open {
+  background-color: #ffffff;
+  border-radius: 0.4rem 0.4rem 0 0;
+}
+.sl-ui-select.open .selected {
+  color: #7dbd33;
+}
+.sl-ui-select .selected {
+  display: block;
+  color: #ffffff;
+}
+.sl-ui-select ul {
+  cursor: default;
+  display: block;
+  position: absolute;
+  top: 4.3rem;
+  width: 20rem;
+  padding: 1rem 0;
+  left: 0;
+  background-color: #ffffff;
+  border-radius: 0 0.4rem 0.4rem 0.4rem;
+  -webkit-box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  -moz-box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
+}
+.sl-ui-select ul li {
+  display: block;
+  padding: 0 1rem;
+}
+.sl-ui-select ul a {
+  display: block;
+  padding: .5rem 1rem;
+  text-decoration: none;
+  border-radius: 0.3rem;
+  color: #999999;
+}
+.sl-ui-select ul a:hover {
+  background-color: #65a718;
+  color: #ffffff;
 }

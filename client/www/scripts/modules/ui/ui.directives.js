@@ -5,9 +5,13 @@ UI.directive('slUiSelect', [
       replace: true,
       templateUrl: './scripts/modules/ui/templates/_ui.select.html',
       scope: {
-        list: '='
+        list: '=',
+        selected: '='
       },
       controller: function($scope, $attrs) {
+        $scope.selectItem = function(item){
+          $scope.selected = item;
+        }
       }
     }
   }

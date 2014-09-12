@@ -1,3 +1,58 @@
-.ui-select {
+.sl-ui-select {
+  @radius: .4rem;
+  @radius-inside: .3rem;
 
+  display: inline-block;
+  border-radius: @radius;
+  background-color: @ui-select-bg-color;
+  position: relative;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  height: 4.3rem;
+  font-size: @font-size-base;
+
+  &.open {
+    background-color: @ui-select-nav-bg-color;
+    border-radius: @radius @radius 0 0;
+
+    .selected {
+      color: @link-color;
+    }
+  }
+
+  .selected {
+    display: block;
+    color: @ui-select-color;
+  }
+
+  ul {
+    cursor: default;
+    display: block;
+    position: absolute;
+    top: 4.3rem;
+    width: 20rem;
+    padding: 1rem 0;
+    left: 0;
+    background-color: @ui-select-nav-bg-color;
+    border-radius: 0 @radius @radius @radius;
+    .drop-shadow(0, 1px, 3px, 0, 0.35);
+
+    li {
+      display: block;
+      padding: 0 1rem;
+    }
+
+    a {
+      display: block;
+      padding: .5rem 1rem;
+      text-decoration: none;
+      border-radius: @radius-inside;
+      color: @gray-light;
+
+      &:hover {
+        background-color: @ui-select-bg-color;
+        color: @ui-select-color;
+      }
+    }
+  }
 }
