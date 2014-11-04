@@ -596,6 +596,9 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     if (event.target.attributes['data-name']) {
       modelPropertyName = event.target.attributes['data-name'].value;
       var xState = this.state;
+      if(event.target.value === 'array') {
+        alert('you chose array type - you need to select what kind of array now');
+      }
       xState.modelProperty[modelPropertyName] = event.target.value;
       this.setState(xState);
       scope.$apply(function() {
@@ -605,6 +608,13 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
   },
   render: function() {
     var component = this;
+    var cx = React.addons.classSet;
+
+    var arrayDetailContainer = cx({
+      'array-detail-container is-open': component.state.isOpen,
+      'array-detail-container is-open': !component.state.isOpen
+    });
+
     var getDataTypeString = function(value) {
       var retVal = value;
       if (typeof retVal === 'object') {
@@ -613,16 +623,32 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       return retVal;
     };
 
+    var dataTypes = this.props.scope.modelPropertyTypes;
+
     // account for more complex data type syntax
     var val = getDataTypeString(component.state.modelProperty.type);
 
-    var dataTypes = this.props.scope.modelPropertyTypes;
+    if (val === 'array') {
+      dataTypes[dataTypes.indexOf('array')] = 'ARRAY';
+    }
 
     var options = dataTypes.map(function(type) {
       return (<option value={type}>{type}</option>)
     });
 
-    return (<select value={val} data-name="type" onChange={component.handleChange}>{options}</select>);
+    return (
+      <div>
+        <select value={val} data-name="type" onChange={component.handleChange}>{options}</select>
+        <div className={arrayDetailContainer}>
+          <label>what kind of array</label>
+          <select>
+            <option>elephant</option>
+            <option>number</option>
+            <option>string</option>
+          </select>
+        </div>
+      </div>
+      );
   }
 });
 
