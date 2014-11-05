@@ -586,9 +586,20 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
 var DataTypeSelect = (DataTypeSelect = React).createClass({
   getInitialState: function() {
     return {
+      isArray:(this.getDataTypeString(this.props.type) === 'array'),
       type:this.props.type,
+      scope:this.props.scope,
       modelProperty:this.props.modelProperty
     };
+  },
+  componentWillReceiveProps: function(nextProps) {
+    var component = this;
+    component.setState({
+      isArray:(this.getDataTypeString(nextProps.type) === 'array'),
+      isObject:(this.getDataTypeString(nextProps.type) === 'object'),
+      scope:this.props.scope,
+      type:nextProps.type
+    });
   },
   handleChange: function(event) {
     var scope = this.props.scope;
@@ -596,9 +607,6 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     if (event.target.attributes['data-name']) {
       modelPropertyName = event.target.attributes['data-name'].value;
       var xState = this.state;
-      if(event.target.value === 'array') {
-        alert('you chose array type - you need to select what kind of array now');
-      }
       xState.modelProperty[modelPropertyName] = event.target.value;
       this.setState(xState);
       scope.$apply(function() {
@@ -606,46 +614,78 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       });
     }
   },
+  getDataTypeString: function(value) {
+    var retVal = value;
+    if (typeof retVal === 'object') {
+      retVal = Array.isArray(retVal)? 'array' : 'object';
+    }
+    return retVal;
+  },
   render: function() {
     var component = this;
     var cx = React.addons.classSet;
+    var arrayType;
 
     var arrayDetailContainer = cx({
-      'array-detail-container is-open': component.state.isOpen,
-      'array-detail-container is-open': !component.state.isOpen
+      'array-detail-container is-open': component.state.isArray,
+      'array-detail-container is-closed': !component.state.isArray
+    });
+    var objectDetailContainer = cx({
+      'object-detail-container is-open': component.state.isObject,
+      'object-detail-container is-closed': !component.state.isObject
     });
 
-    var getDataTypeString = function(value) {
-      var retVal = value;
-      if (typeof retVal === 'object') {
-        retVal = Array.isArray(retVal)? 'array' : 'object';
-      }
-      return retVal;
-    };
+
 
     var dataTypes = this.props.scope.modelPropertyTypes;
 
     // account for more complex data type syntax
-    var val = getDataTypeString(component.state.modelProperty.type);
-
-    if (val === 'array') {
-      dataTypes[dataTypes.indexOf('array')] = 'ARRAY';
-    }
+    var val = component.getDataTypeString(component.state.type);
 
     var options = dataTypes.map(function(type) {
-      return (<option value={type}>{type}</option>)
+      var display = type;
+      if (val === 'array') {
+        var xyx = component.state.modelProperty.type;
+        if (Array.isArray(xyx)) {
+          arrayType = xyx[0];
+          if (typeof arrayType === 'object') {
+            arrayType = Array.isArray(arrayType)? 'array' : 'object';
+          }
+          display = 'array[' + arrayType + ']';
+        }
+        else {
+          console.log('array prop data type: ' + xyx);
+        }
+      }
+      return (<option value={type}>{display}</option>)
+    });
+    var arrayOptions = component.state.scope.mainNavModels.map(function(item) {
+      return (item.name);
+    });
+    dataTypes.map(function(type) {
+      arrayOptions.push(type);
+    });
+    arrayOptions.sort();
+    arrayOptions = arrayOptions.map(function(option) {
+      return (<option value={option}>{option}</option>);
     });
 
     return (
       <div>
-        <select value={val} data-name="type" onChange={component.handleChange}>{options}</select>
+        <select value={val} data-name="type" onChange={component.handleChange}>
+          {options}
+        </select>
         <div className={arrayDetailContainer}>
-          <label>what kind of array</label>
-          <select>
-            <option>elephant</option>
-            <option>number</option>
-            <option>string</option>
+          <label>of</label>
+          <select value={arrayType} data-name="">
+            {arrayOptions}
           </select>
+        </div>
+        <div className={objectDetailContainer}>
+          <span>object goes here
+            <br />
+            {String.valueOf(component.state.type)}
+          </span>
         </div>
       </div>
       );
