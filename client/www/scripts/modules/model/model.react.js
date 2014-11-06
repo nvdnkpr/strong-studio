@@ -585,10 +585,13 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
 
 var DataTypeSelect = (DataTypeSelect = React).createClass({
   getInitialState: function() {
+    console.log('= ' + this.props.modelProperty.name);
     return {
       isArray:(this.getDataTypeString(this.props.type) === 'array'),
+      isObject:(this.isAnonObj(this.props.type)),
       type:this.props.type,
       scope:this.props.scope,
+      showObjDetails:false,
       modelProperty:this.props.modelProperty
     };
   },
@@ -596,7 +599,7 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     var component = this;
     component.setState({
       isArray:(this.getDataTypeString(nextProps.type) === 'array'),
-      isObject:(this.getDataTypeString(nextProps.type) === 'object'),
+      isObject:(this.isAnonObj(nextProps.type)),
       scope:this.props.scope,
       type:nextProps.type
     });
@@ -607,12 +610,39 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     if (event.target.attributes['data-name']) {
       modelPropertyName = event.target.attributes['data-name'].value;
       var xState = this.state;
-      xState.modelProperty[modelPropertyName] = event.target.value;
-      this.setState(xState);
-      scope.$apply(function() {
-        scope.updateModelPropertyRequest(xState.modelProperty);
-      });
+      if (this.state.isObject) {
+
+        if (confirm('this is an object that has been edited outside the scope of the gui.  If you change it you will lose the existing data. continue?')) {
+          xState.modelProperty[modelPropertyName] = event.target.value;
+          this.setState(xState);
+          scope.$apply(function() {
+            scope.updateModelPropertyRequest(xState.modelProperty);
+          });
+        }
+        else {
+          return;
+        }
+      }
+      else {
+          xState.modelProperty[modelPropertyName] = event.target.value;
+          this.setState(xState);
+          scope.$apply(function() {
+            scope.updateModelPropertyRequest(xState.modelProperty);
+          });
+        }
+
     }
+  },
+  isAnonObj: function(value) {
+    console.log('pre well raw value: ' + value);
+    var tO = (typeof value);
+    if (tO !== 'object') {
+      console.log('is not an object: ' + value);
+      return false;
+    }
+    var x = Array.isArray(value)? false : true;
+    console.log('well [is an object]?  ' + x);
+    return x;
   },
   getDataTypeString: function(value) {
     var retVal = value;
@@ -621,10 +651,19 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     }
     return retVal;
   },
+
   render: function() {
     var component = this;
     var cx = React.addons.classSet;
     var arrayType;
+    var showObjDetails = false;
+
+    var toggleAnonObjectDetails = function() {
+      var currentState = component.state.showObjDetails;
+      var newState = !currentState;
+      component.setState({showObjDetails:newState});
+
+    };
 
     var arrayDetailContainer = cx({
       'array-detail-container is-open': component.state.isArray,
@@ -633,6 +672,10 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     var objectDetailContainer = cx({
       'object-detail-container is-open': component.state.isObject,
       'object-detail-container is-closed': !component.state.isObject
+    });
+    var objectDetail = cx({
+      'object-detail is-open': component.state.showObjDetails,
+      'object-detail is-closed': !component.state.showObjDetails
     });
 
 
@@ -670,6 +713,7 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       return (<option value={option}>{option}</option>);
     });
 
+
     return (
       <div>
         <select value={val} data-name="type" onChange={component.handleChange}>
@@ -681,11 +725,13 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
             {arrayOptions}
           </select>
         </div>
-        <div className={objectDetailContainer}>
-          <span>object goes here
-            <br />
-            {String.valueOf(component.state.type)}
-          </span>
+        <div className="property-type-object-definition-display">
+          <div className={objectDetailContainer}>
+            <button className="btn-command" onClick={toggleAnonObjectDetails}>details</button>
+            <div className={objectDetail}>
+              {JSON.stringify(component.state.type)}
+            </div>
+          </div>
         </div>
       </div>
       );
