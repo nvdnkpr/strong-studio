@@ -100,7 +100,7 @@ select {
     padding-left: 0.6rem;
 }
 .model-editor-section-icon{
-    display: block;
+    display: inline-block;
     font-size: 16pt;
 }
 .model-instance-header {
@@ -180,6 +180,11 @@ select {
     padding-bottom: 1.4rem;
     border: 1px solid #aaaaaa;
     border-radius: 1rem;
+}
+.props-data-type-cell .array-detail-container label,
+  .props-data-type-cell .object-detail-container button {
+    margin-left:.5rem;
+    font-style: italic;
 }
 .model-instance-container [data-ui-type="table"] {
 
@@ -520,6 +525,16 @@ button[disabled].model-detail-pocket-button:hover {
   position:relative;
 }
 .property-type-object-definition-display .object-detail-container{
-  position:absolute;
+
   background-color:#ffffff;
+}
+.abs-container {
+  position:relative;
+}
+.property-type-object-definition-display code {
+  position:absolute;
+}
+.property-type-object-definition-display .object-detail-container .btn-command {
+  color:@brand-primary;
+  text-decoration: underline;
 }

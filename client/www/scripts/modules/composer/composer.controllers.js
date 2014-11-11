@@ -348,8 +348,12 @@ Composer.controller('ComposerMainController', [
     // update model property
     $scope.updateModelPropertyRequest = function(modelPropertyConfig) {
       if (modelPropertyConfig && modelPropertyConfig.modelId && modelPropertyConfig.name) {
-        PropertyService.updateModelProperty(modelPropertyConfig);
-        $scope.activeModelPropertiesChanged = !$scope.activeModelPropertiesChanged;
+        PropertyService.updateModelProperty(modelPropertyConfig)
+          .then(function(response) {
+            growl.addSuccessMessage("property updated");
+            $scope.activeModelPropertiesChanged = !$scope.activeModelPropertiesChanged;
+
+          });
 
       }
     };

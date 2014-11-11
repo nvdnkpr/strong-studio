@@ -507,7 +507,7 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
         <div className={cClasses}>
           <div data-ui-type="table" className="modelproperty-detail-row" >
             <div data-ui-type="row">
-              <span data-ui-type="cell" className={propertyCellValidationClasses}>
+              <div data-ui-type="cell" className={propertyCellValidationClasses}>
                 <input ref="propName"
                   data-name="name"
                   required="true"
@@ -515,11 +515,11 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
                   onChange={component.checkSubmitModelProperty}
                   onBlur={component.triggerModelPropertyUpdate}
                   value={modelProperty.name} />
-              </span>
-              <span data-ui-type="cell" className="props-data-type-cell">
+              </div>
+              <div data-ui-type="cell" className="props-data-type-cell">
                 <DataTypeSelect scope={scope} modelProperty={component.state.modelProperty} type={modelProperty.type} />
-              </span>
-              <span data-ui-type="cell" className="props-isid-cell">
+              </div>
+              <div data-ui-type="cell" className="props-isid-cell">
                 <input type="checkbox"
                   data-name="isId"
                   name="isId"
@@ -527,8 +527,8 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
                   checked={modelProperty.isId}
                   value={modelProperty.isId}
                   className="model-instance-editor-checkbox" />
-              </span>
-              <span data-ui-type="cell" className="props-required-cell">
+              </div>
+              <div data-ui-type="cell" className="props-required-cell">
                 <input type="checkbox"
                   data-name="required"
                   name="required"
@@ -536,8 +536,8 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
                   checked={modelProperty.required}
                   value={modelProperty.required}
                   className="model-instance-editor-checkbox" />
-              </span>
-              <span data-ui-type="cell" className="props-index-cell">
+              </div>
+              <div data-ui-type="cell" className="props-index-cell">
                 <input type="checkbox"
                   data-name="index"
                   name="index"
@@ -545,8 +545,8 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
                   checked={modelProperty.index}
                   value={modelProperty.index}
                   className="model-instance-editor-checkbox" />
-              </span>
-              <span data-ui-type="cell" className="props-comments-cell">
+              </div>
+              <div data-ui-type="cell" className="props-comments-cell">
                 <input type="text"
                   data-name="comments"
                   name="comments"
@@ -554,13 +554,13 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
                   onBlur={component.triggerModelPropertyUpdate}
                   value={modelProperty.comments}
                   className="property-doc-textarea model-instance-editor-input" />
-              </span>
-              <span data-ui-type="cell" className="props-controls-cell">
+              </div>
+              <div data-ui-type="cell" className="props-controls-cell">
                 <button className="props-remove-btn" onClick={component.deleteModelProperty} data-id={modelProperty.id}>
                   <span data-id={modelProperty.id} className="sl-icon sl-icon-close"></span>
                 </button>
 
-              </span>
+              </div>
 
             </div>
           </div>
@@ -591,6 +591,7 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       isObject:(this.isAnonObj(this.props.type)),
       type:this.props.type,
       scope:this.props.scope,
+      val:this.getDataTypeString(this.props.type),
       showObjDetails:false,
       modelProperty:this.props.modelProperty
     };
@@ -619,17 +620,14 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
             scope.updateModelPropertyRequest(xState.modelProperty);
           });
         }
-        else {
-          return;
-        }
       }
       else {
-          xState.modelProperty[modelPropertyName] = event.target.value;
-          this.setState(xState);
-          scope.$apply(function() {
-            scope.updateModelPropertyRequest(xState.modelProperty);
-          });
-        }
+        xState.modelProperty[modelPropertyName] = event.target.value;
+        this.setState(xState);
+        scope.$apply(function() {
+          scope.updateModelPropertyRequest(xState.modelProperty);
+        });
+      }
 
     }
   },
@@ -649,6 +647,13 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     if (typeof retVal === 'object') {
       retVal = Array.isArray(retVal)? 'array' : 'object';
     }
+    return retVal;
+  },
+  getAppModelNames: function() {
+    var retVal = [];
+    this.state.scope.mainNavModels.map(function(model) {
+      retVal.push(model.name);
+    });
     return retVal;
   },
 
@@ -683,18 +688,18 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     var dataTypes = this.props.scope.modelPropertyTypes;
 
     // account for more complex data type syntax
-    var val = component.getDataTypeString(component.state.type);
+
 
     var options = dataTypes.map(function(type) {
       var display = type;
-      if (val === 'array') {
+      if (component.state.val === 'array') {
         var xyx = component.state.modelProperty.type;
         if (Array.isArray(xyx)) {
           arrayType = xyx[0];
           if (typeof arrayType === 'object') {
             arrayType = Array.isArray(arrayType)? 'array' : 'object';
           }
-          display = 'array[' + arrayType + ']';
+         // display = 'array[' + arrayType + ']';
         }
         else {
           console.log('array prop data type: ' + xyx);
@@ -702,9 +707,8 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       }
       return (<option value={type}>{display}</option>)
     });
-    var arrayOptions = component.state.scope.mainNavModels.map(function(item) {
-      return (item.name);
-    });
+    var appModelNames = component.getAppModelNames();
+    var arrayOptions = appModelNames;
     dataTypes.map(function(type) {
       arrayOptions.push(type);
     });
@@ -712,24 +716,33 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     arrayOptions = arrayOptions.map(function(option) {
       return (<option value={option}>{option}</option>);
     });
+    var tOptions = arrayOptions;
 
 
     return (
       <div>
-        <select value={val} data-name="type" onChange={component.handleChange}>
-          {options}
-        </select>
+        <DataTypeSelectOptions appModelNames={appModelNames}
+          modelProperty={component.state.modelProperty}
+          data-name="type"
+          baseTypes={dataTypes}
+          val={component.state.val}
+          onChange={component.handleChange} />
         <div className={arrayDetailContainer}>
           <label>of</label>
-          <select value={arrayType} data-name="">
-            {arrayOptions}
-          </select>
+          <DataTypeSelectOptions appModelNames={appModelNames}
+          modelProperty={component.state.modelProperty}
+          data-name="type"
+          baseTypes={dataTypes}
+          val={arrayType}
+          onChange={component.handleChange} />
         </div>
         <div className="property-type-object-definition-display">
           <div className={objectDetailContainer}>
             <button className="btn-command" onClick={toggleAnonObjectDetails}>details</button>
-            <div className={objectDetail}>
+            <div className="abs-container">
+              <code className={objectDetail}>
               {JSON.stringify(component.state.type)}
+              </code>
             </div>
           </div>
         </div>
@@ -737,7 +750,30 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       );
   }
 });
+var DataTypeSelectOptions = (DataTypeSelectOptions = React).createClass({
+  getInitialState: function() {
+    return {
+      onChangeFunc:this.props.onChange,
+      baseOptions:this.props.baseTypes,
+      value: this.props.val,
+      typeNames: this.props.appModelNames,
+      modelProperty:this.props.modelProperty
+    };
+  },
+  render: function() {
+    var component = this;
 
+    var options = this.state.typeNames.map(function(item) {
+        return (<option value={item} >{item}</option>);
+    });
+    return (
+      <select value={component.state.value} data-name="type" onChange={component.state.onChangeFunc}>
+        {options}
+      </select>
+      );
+  }
+
+});
 /*
  *   Property Comment Editor
  * */
