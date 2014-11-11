@@ -475,7 +475,6 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
     var modelProperty = component.state.modelProperty;
     var cx = React.addons.classSet;
 
-
     var togglePropertiesView = function(property) {
       component.setState({isOpen:!component.state.isOpen});
     };
@@ -500,7 +499,6 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
       'model-instance-name-validation is-valid': component.state.isNameValid,
       'model-instance-name-validation is-invalid': !component.state.isNameValid
     });
-
 
     return (
       <li>
@@ -559,9 +557,7 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
                 <button className="props-remove-btn" onClick={component.deleteModelProperty} data-id={modelProperty.id}>
                   <span data-id={modelProperty.id} className="sl-icon sl-icon-close"></span>
                 </button>
-
               </div>
-
             </div>
           </div>
           <div className={propertyValidationContainerClasses}>
@@ -572,8 +568,6 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
           <div className={pClasses}>
             <ModelPocketEditorContainer scope={scope} property={modelProperty} />
           </div>
-
-
         </div>
       </li>
       );
@@ -613,7 +607,7 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       var xState = this.state;
       if (this.state.isObject) {
 
-        if (confirm('this is an object that has been edited outside the scope of the gui.  If you change it you will lose the existing data. continue?')) {
+        if (confirm('This value has been edited outside the scope of this gui.  If you change it the existing value will be lost. Continue?')) {
           xState.modelProperty[modelPropertyName] = event.target.value;
           this.setState(xState);
           scope.$apply(function() {
@@ -651,9 +645,11 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
   },
   getAppModelNames: function() {
     var retVal = [];
-    this.state.scope.mainNavModels.map(function(model) {
-      retVal.push(model.name);
-    });
+    if (this.state.scope && this.state.scope.mainNavModels){
+      this.state.scope.mainNavModels.map(function(model) {
+        retVal.push(model.name);
+      });
+    }
     return retVal;
   },
 
@@ -703,6 +699,13 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
         }
         else {
           console.log('array prop data type: ' + xyx);
+        }
+      }
+      else { // this is not an 'array' - may be an anon obj
+        if (typeof component.state.modelProperty.type === 'object'){
+          console.log('|');
+          console.log('| CHECK THIS TYPE VALUE: ' + JSON.stringify(component.state.modelProperty.type));
+          console.log('|');
         }
       }
       return (<option value={type}>{display}</option>)

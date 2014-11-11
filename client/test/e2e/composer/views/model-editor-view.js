@@ -6,13 +6,10 @@ var ModelEditorView = (function () {
       by.css('.btn-new-model-property'));
     this.propertyNameInputCollection = element.all(
       by.css('.props-name-cell [data-name="name"]'));
-<<<<<<< HEAD
     this.propertyCommentInputCollection = element.all(
       by.css('.props-comments-cell [data-name="comments"]'));
-=======
     this.propertyTypeSelectCollection = element.all(
       by.css('.props-data-type-cell [data-name="type"]'));
->>>>>>> fully functional - incomplete tests
     this.parentContainer = element(
       by.css('[data-id="CommonInstanceContainer"]'));
 
