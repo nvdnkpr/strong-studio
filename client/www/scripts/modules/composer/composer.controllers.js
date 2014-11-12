@@ -352,9 +352,7 @@ Composer.controller('ComposerMainController', [
           .then(function(response) {
             growl.addSuccessMessage("property updated");
             $scope.activeModelPropertiesChanged = !$scope.activeModelPropertiesChanged;
-
           });
-
       }
     };
     // delete model property

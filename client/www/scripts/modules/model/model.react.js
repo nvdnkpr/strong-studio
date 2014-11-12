@@ -299,8 +299,17 @@ var ModelPropertiesEditor = (ModelPropertiesEditor = React).createClass({
   getInitialState: function() {
     return {
       isOpen:true,
-      isPropertiesContainerOpen:true
+      isPropertiesContainerOpen:true,
+      scope: this.props.scope,
+      properties: this.props.scope.activeInstance.properties
     };
+  },
+  componentWillReceiveProps: function(nextProps) {
+    var component = this;
+    component.setState({
+      scope: nextProps.scope,
+      properties: nextProps.scope.activeInstance.properties
+    });
   },
   shouldComponentUpdate: function(nextProps, nextState) {
 
@@ -329,8 +338,8 @@ var ModelPropertiesEditor = (ModelPropertiesEditor = React).createClass({
 
     var component = this;
 
-    var scope = component.props.scope;
-    var properties = scope.activeInstance.properties;
+    var scope = component.state.scope;
+    var properties = component.state.properties;
     var cx = React.addons.classSet;
 
     var classes = cx({
@@ -439,6 +448,7 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
     var scope = this.props.scope;
     if(event.target.attributes['data-name']){
       var tModelPropertyName = event.target.attributes['data-name'].value;
+
       var tModelProperty = this.state.modelProperty;
       if (event.target.attributes['type'] && (event.target.attributes['type'].value === 'checkbox')) {
         tModelProperty[tModelPropertyName] = event.target.checked;
@@ -456,6 +466,7 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
       scope.$apply(function() {
         scope.updateModelPropertyRequest(updateModelPropertyConfig);
       });
+
     }
   },
   deleteModelProperty: function(event) {
@@ -575,17 +586,15 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
 });
 
 
-
-
 var DataTypeSelect = (DataTypeSelect = React).createClass({
   getInitialState: function() {
-    console.log('= ' + this.props.modelProperty.name);
     return {
-      isArray:(this.getDataTypeString(this.props.type) === 'array'),
-      isObject:(this.isAnonObj(this.props.type)),
+      isArray:(this.getDataTypeString(this.props.modelProperty.type) === 'array'),
+      isAnonObject:(this.isAnonObj(this.props.modelProperty.type)),
       type:this.props.type,
+      arrayType: this.getArrayType(),
       scope:this.props.scope,
-      val:this.getDataTypeString(this.props.type),
+      val:this.getDataTypeString(this.props.modelProperty.type),
       showObjDetails:false,
       modelProperty:this.props.modelProperty
     };
@@ -593,10 +602,12 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
   componentWillReceiveProps: function(nextProps) {
     var component = this;
     component.setState({
-      isArray:(this.getDataTypeString(nextProps.type) === 'array'),
-      isObject:(this.isAnonObj(nextProps.type)),
+      isArray:(this.getDataTypeString(nextProps.modelProperty.type) === 'array'),
+      isAnonObject:(this.isAnonObj(nextProps.modelProperty.type)),
+      val:this.getDataTypeString(this.props.modelProperty.type),
+      arrayType: this.getArrayType(),
       scope:this.props.scope,
-      type:nextProps.type
+      type:nextProps.modelProperty.type
     });
   },
   handleChange: function(event) {
@@ -604,8 +615,9 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     var modelPropertyName = '';
     if (event.target.attributes['data-name']) {
       modelPropertyName = event.target.attributes['data-name'].value;
+
       var xState = this.state;
-      if (this.state.isObject) {
+      if (this.state.isAnonObject) {
 
         if (confirm('This value has been edited outside the scope of this gui.  If you change it the existing value will be lost. Continue?')) {
           xState.modelProperty[modelPropertyName] = event.target.value;
@@ -622,19 +634,73 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
           scope.updateModelPropertyRequest(xState.modelProperty);
         });
       }
+    }
+  },
+  getArrayType: function() {
+    var component = this;
+    var retVal = 'any'; // default
+    var test = component.getDataTypeString(this.props.modelProperty.type);
+    if (test === 'array') {
+      var xyx = component.props.modelProperty.type;
+      if (Array.isArray(xyx)) {
+        retVal = xyx[0];
+        if (typeof retVal === 'object') {
+          retVal = Array.isArray(retVal)? 'array' : 'object';
+        }
+      }
+    }
+    return retVal;
+  },
+  handleSubTypeChange: function(event) {
+    var component = this;
+    var scope = component.props.scope;
+    var modelProperty = component.props.modelProperty;
+    var modelPropertyName = '';
+    console.log('YOU ARE CHANGING THE SUBTYPE');
+    if (event.target.attributes['data-name']) {
 
+      var xState = this.state;
+      if (this.state.isAnonObject) {
+
+        if (confirm('This value has been edited outside the scope of this gui.  If you change it the existing value will be lost. Continue?')) {
+          var property = component.state.modelProperty;
+          property.type = [event.target.value];
+          component.setState({arrayType: event.target.value});
+          component.setState({modelProperty: property});
+          scope.$apply(function() {
+            scope.updateModelPropertyRequest(component.state.modelProperty);
+          });
+        }
+      }
+      else {
+        var property = component.state.modelProperty;
+        property.type = [event.target.value];
+        component.setState({arrayType: event.target.value});
+        component.setState({modelProperty: property});
+        scope.$apply(function() {
+          scope.updateModelPropertyRequest(component.state.modelProperty);
+        });
+      }
     }
   },
   isAnonObj: function(value) {
-    console.log('pre well raw value: ' + value);
+    var isAnonObject = false;
     var tO = (typeof value);
     if (tO !== 'object') {
-      console.log('is not an object: ' + value);
-      return false;
+      return isAnonObject;
     }
-    var x = Array.isArray(value)? false : true;
-    console.log('well [is an object]?  ' + x);
-    return x;
+    var isArray = Array.isArray(value)? true : false;
+
+    // if not object, may be an array of anon obj
+    if (isArray) {
+      if (typeof value[0] === 'object') {
+        isAnonObject = true;
+      }
+    }
+    else {
+      isAnonObject = true;
+    }
+    return isAnonObject;
   },
   getDataTypeString: function(value) {
     var retVal = value;
@@ -656,8 +722,6 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
   render: function() {
     var component = this;
     var cx = React.addons.classSet;
-    var arrayType;
-    var showObjDetails = false;
 
     var toggleAnonObjectDetails = function() {
       var currentState = component.state.showObjDetails;
@@ -671,8 +735,8 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       'array-detail-container is-closed': !component.state.isArray
     });
     var objectDetailContainer = cx({
-      'object-detail-container is-open': component.state.isObject,
-      'object-detail-container is-closed': !component.state.isObject
+      'object-detail-container is-open': component.state.isAnonObject,
+      'object-detail-container is-closed': !component.state.isAnonObject
     });
     var objectDetail = cx({
       'object-detail is-open': component.state.showObjDetails,
@@ -683,33 +747,8 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
 
     var dataTypes = this.props.scope.modelPropertyTypes;
 
-    // account for more complex data type syntax
 
 
-    var options = dataTypes.map(function(type) {
-      var display = type;
-      if (component.state.val === 'array') {
-        var xyx = component.state.modelProperty.type;
-        if (Array.isArray(xyx)) {
-          arrayType = xyx[0];
-          if (typeof arrayType === 'object') {
-            arrayType = Array.isArray(arrayType)? 'array' : 'object';
-          }
-         // display = 'array[' + arrayType + ']';
-        }
-        else {
-          console.log('array prop data type: ' + xyx);
-        }
-      }
-      else { // this is not an 'array' - may be an anon obj
-        if (typeof component.state.modelProperty.type === 'object'){
-          console.log('|');
-          console.log('| CHECK THIS TYPE VALUE: ' + JSON.stringify(component.state.modelProperty.type));
-          console.log('|');
-        }
-      }
-      return (<option value={type}>{display}</option>)
-    });
     var appModelNames = component.getAppModelNames();
     var arrayOptions = appModelNames;
     dataTypes.map(function(type) {
@@ -719,7 +758,6 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     arrayOptions = arrayOptions.map(function(option) {
       return (<option value={option}>{option}</option>);
     });
-    var tOptions = arrayOptions;
 
 
     return (
@@ -733,11 +771,11 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
         <div className={arrayDetailContainer}>
           <label>of</label>
           <DataTypeSelectOptions appModelNames={appModelNames}
-          modelProperty={component.state.modelProperty}
-          data-name="type"
-          baseTypes={dataTypes}
-          val={arrayType}
-          onChange={component.handleChange} />
+            modelProperty={component.state.modelProperty}
+            data-name="sub-type"
+            baseTypes={dataTypes}
+            val={component.state.arrayType}
+            onChange={component.handleSubTypeChange} />
         </div>
         <div className="property-type-object-definition-display">
           <div className={objectDetailContainer}>
@@ -763,6 +801,16 @@ var DataTypeSelectOptions = (DataTypeSelectOptions = React).createClass({
       modelProperty:this.props.modelProperty
     };
   },
+  componentWillReceiveProps: function(nextProps) {
+    var component = this;
+    component.setState({
+      onChangeFunc:nextProps.onChange,
+      baseOptions:nextProps.baseTypes,
+      value: nextProps.val,
+      typeNames: nextProps.appModelNames,
+      modelProperty:nextProps.modelProperty
+    });
+  },
   render: function() {
     var component = this;
 
@@ -770,7 +818,7 @@ var DataTypeSelectOptions = (DataTypeSelectOptions = React).createClass({
         return (<option value={item} >{item}</option>);
     });
     return (
-      <select value={component.state.value} data-name="type" onChange={component.state.onChangeFunc}>
+      <select value={component.state.value} data-name={component.props['data-name']} onChange={component.state.onChangeFunc}>
         {options}
       </select>
       );
@@ -792,7 +840,7 @@ var PropertyCommentEditor = (PropertyCommentEditor = React).createClass({
 
     return (
       <textarea onChange={updatePropertyDoc} className="model-instance-editor-input">
-          {this.props.doc}
+        {this.props.doc}
       </textarea>
       );
   }
