@@ -57,9 +57,7 @@ describe('model-definition-interactions', function() {
   );
 
 });
-<<<<<<< HEAD
 
-=======
 /**
  *
  * Complex Model Property Type Tests
@@ -166,4 +164,4 @@ describe('complex-model-property-datatype', function() {
   );
 
 });
->>>>>>> fully functional - incomplete tests
+
