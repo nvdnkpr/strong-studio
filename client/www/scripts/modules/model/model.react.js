@@ -401,6 +401,8 @@ var ModelPropertiesEditor = (ModelPropertiesEditor = React).createClass({
 *
 *   Model Property Row Detail Item
 *
+*   container for each property item
+*
 * */
 var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
   getInitialState: function() {
@@ -585,7 +587,40 @@ var ModelPropertyRowDetail = (ModelPropertyRowDetail = React).createClass({
   }
 });
 
-
+/*
+* DataTypeSelect - Component to manage property 'type' value
+* - type value can be a wide variety of patterns including:
+* -- string
+* -- js object
+* -- model name reference
+* -- array of any of the above
+*
+* - it is possible users may edit the json directly in the project
+*     in a way that isn't possible via the gui - generally in the form of
+*     'anonymous' js object patterns
+*     eg:
+         {
+           "x": {
+             "type": "number"
+           },
+           "y": {
+             "type": "string"
+           }
+         }
+* - these can be direct type values or arrays of these patterns
+* - if an 'anonymous' object pattern is detected it is displayed read only
+* - if the user tries to change the value of a property type that includes an
+*     anonymous js object pattern they will be alerted that the current value
+*     will be destroyed if they continue
+*
+* This component may display 2 select components if the data type is an array
+*   so the user can choose the type of array
+* - DataTypeSelectOptions
+*
+* If the value is an ajop either directly or in an array, a control is displayed to
+*   allow the user to view the object pattern
+*
+* */
 var DataTypeSelect = (DataTypeSelect = React).createClass({
   getInitialState: function() {
     return {
@@ -619,13 +654,14 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       var xState = this.state;
       if (this.state.isAnonObject) {
 
-        if (confirm('This value has been edited outside the scope of this gui.  If you change it the existing value will be lost. Continue?')) {
-          xState.modelProperty[modelPropertyName] = event.target.value;
-          this.setState(xState);
-          scope.$apply(function() {
-            scope.updateModelPropertyRequest(xState.modelProperty);
-          });
-        }
+        if (confirm('This value has been edited outside the scope of this gui.  ' +
+            'If you change it the existing value will be lost. Continue?')) {
+            xState.modelProperty[modelPropertyName] = event.target.value;
+            this.setState(xState);
+            scope.$apply(function() {
+              scope.updateModelPropertyRequest(xState.modelProperty);
+            });
+          }
       }
       else {
         xState.modelProperty[modelPropertyName] = event.target.value;
@@ -639,11 +675,11 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
   getArrayType: function() {
     var component = this;
     var retVal = 'any'; // default
-    var test = component.getDataTypeString(this.props.modelProperty.type);
-    if (test === 'array') {
-      var xyx = component.props.modelProperty.type;
-      if (Array.isArray(xyx)) {
-        retVal = xyx[0];
+    var typeString = component.getDataTypeString(this.props.modelProperty.type);
+    if (typeString === 'array') {
+      var propType = component.props.modelProperty.type;
+      if (Array.isArray(propType)) {
+        retVal = propType[0];
         if (typeof retVal === 'object') {
           retVal = Array.isArray(retVal)? 'array' : 'object';
         }
@@ -651,35 +687,33 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
     }
     return retVal;
   },
-  handleSubTypeChange: function(event) {
+  updatePropertyType: function(value) {
+    var component = this;
+    var property = component.state.modelProperty;
+    property.type = [value];
+    component.setState({arrayType: event.target.value});
+    component.setState({modelProperty: property});
+    scope.$apply(function() {
+      scope.updateModelPropertyRequest(component.state.modelProperty);
+    });
+  },
+  handleArrayTypeChange: function(event) {
     var component = this;
     var scope = component.props.scope;
     var modelProperty = component.props.modelProperty;
     var modelPropertyName = '';
-    console.log('YOU ARE CHANGING THE SUBTYPE');
+
     if (event.target.attributes['data-name']) {
 
-      var xState = this.state;
       if (this.state.isAnonObject) {
 
-        if (confirm('This value has been edited outside the scope of this gui.  If you change it the existing value will be lost. Continue?')) {
-          var property = component.state.modelProperty;
-          property.type = [event.target.value];
-          component.setState({arrayType: event.target.value});
-          component.setState({modelProperty: property});
-          scope.$apply(function() {
-            scope.updateModelPropertyRequest(component.state.modelProperty);
-          });
-        }
+        if (confirm('This value has been edited outside the scope of this gui. ' +
+          'If you change it the existing value will be lost. Continue?')) {
+            component.updatePropertyType(event.target.value);
+          }
       }
       else {
-        var property = component.state.modelProperty;
-        property.type = [event.target.value];
-        component.setState({arrayType: event.target.value});
-        component.setState({modelProperty: property});
-        scope.$apply(function() {
-          scope.updateModelPropertyRequest(component.state.modelProperty);
-        });
+        component.updatePropertyType(event.target.value);
       }
     }
   },
@@ -743,17 +777,17 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       'object-detail is-closed': !component.state.showObjDetails
     });
 
-
-
-    var dataTypes = this.props.scope.modelPropertyTypes;
-
-
-
+    // build the list of possible type values
+    // get the existing model names
     var appModelNames = component.getAppModelNames();
-    var arrayOptions = appModelNames;
+
+    // add studio meta-data
+    var dataTypes = this.props.scope.modelPropertyTypes;
     dataTypes.map(function(type) {
       arrayOptions.push(type);
     });
+
+    var arrayOptions = appModelNames;
     arrayOptions.sort();
     arrayOptions = arrayOptions.map(function(option) {
       return (<option value={option}>{option}</option>);
@@ -775,7 +809,7 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
             data-name="sub-type"
             baseTypes={dataTypes}
             val={component.state.arrayType}
-            onChange={component.handleSubTypeChange} />
+            onChange={component.handleArrayTypeChange} />
         </div>
         <div className="property-type-object-definition-display">
           <div className={objectDetailContainer}>
@@ -791,11 +825,18 @@ var DataTypeSelect = (DataTypeSelect = React).createClass({
       );
   }
 });
+/*
+* DataTypeSelectOptions - drop down select component to allow users to
+*   choose the type of data or the type of array for a particular model
+*   property type
+*
+*   note: it inherits the onchange method from the parent props.
+*
+* */
 var DataTypeSelectOptions = (DataTypeSelectOptions = React).createClass({
   getInitialState: function() {
     return {
       onChangeFunc:this.props.onChange,
-      baseOptions:this.props.baseTypes,
       value: this.props.val,
       typeNames: this.props.appModelNames,
       modelProperty:this.props.modelProperty
@@ -805,7 +846,6 @@ var DataTypeSelectOptions = (DataTypeSelectOptions = React).createClass({
     var component = this;
     component.setState({
       onChangeFunc:nextProps.onChange,
-      baseOptions:nextProps.baseTypes,
       value: nextProps.val,
       typeNames: nextProps.appModelNames,
       modelProperty:nextProps.modelProperty
