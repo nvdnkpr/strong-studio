@@ -80,6 +80,34 @@
           margin-bottom: 1rem;
         }
 
+        .sl-server {
+          label {
+            display: inline-block;
+
+            input {
+              display: block;
+            }
+
+            &:nth-child(1){
+              input {
+                width: 16rem;
+              }
+            }
+
+            &:nth-child(2) {
+              input {
+                width: 7rem;
+              }
+            }
+
+            &:nth-child(3) {
+              input {
+                width: 7rem;
+              }
+            }
+          }
+        }
+
         .sl-actions {
           text-align: right;
         }
@@ -120,9 +148,8 @@
     border: 1px solid @gray-light-2;
     background: @white;
     color: @gray-light;
-    padding-left: 0;
     list-style-type: none;
-    padding: 1rem 2rem;
+    padding: 1rem 2rem 1rem 0;
     max-height: 20rem;
     margin-bottom: 2rem;
     overflow-y: auto;
