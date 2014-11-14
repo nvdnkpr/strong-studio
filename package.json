@@ -16,7 +16,8 @@
     "loopback-workspace": "^3.5.0",
     "opener": "~1.4.0",
     "request": "^2.34.0",
-    "ws": "^0.4.32"
+    "ws": "^0.4.32",
+    "http-proxy": "^1.6.2"
   },
   "description": "A gui for working with the LoopBack framework",
   "devDependencies": {

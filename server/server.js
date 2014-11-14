@@ -2,6 +2,7 @@ var express = require('express');
 var path = require('path');
 var workspace = require('loopback-workspace');
 var devtools = require('../devtools/server/devtools');
+var pm = require('../process-manager/server');
 
 var app = module.exports = express();
 
@@ -10,8 +11,8 @@ app.workspace = workspace;
 
 // REST APIs
 app.use('/workspace', workspace);
-
 app.use('/devtools', devtools);
+app.use('/process-manager', pm);
 
 try {
   // API explorer
@@ -23,6 +24,7 @@ try {
 
 // static files
 app.use(express.static(path.join(__dirname, '../client/www')));
+
 
 var listen = app.listen;
 app.listen = function() {
